@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_drawer_navi"
+        android:icon="@drawable/navigationicon"
+        android:title="Navigation" />
+
+    <item
+        android:id="@+id/menu_drawer_info"
+        android:icon="@drawable/aricon"
+        android:title="Nearby places Info" />
+
+    <item
+        android:id="@+id/menu_drawer_trans"
+        android:icon="@drawable/translateicon"
+        android:title="Translate" />
+
+    <item
+        android:id="@+id/menu_drawer_setting"
+        android:icon="@drawable/settingicon"
+        android:title="Setting"/>
+
+</menu>
