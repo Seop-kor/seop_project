@@ -1,14 +1,3 @@
-/*
-    Information about server communication. This sample webservice is provided by Wikitude and returns random dummy
-    places near given location.
- */
-var ServerInformation = {
-    POIDATA_SERVER: "https://example.wikitude.com/GetSamplePois/",
-    POIDATA_SERVER_ARG_LAT: "lat",
-    POIDATA_SERVER_ARG_LON: "lon",
-    POIDATA_SERVER_ARG_NR_POIS: "nrPois"
-};
-
 /* Implementation of AR-Experience (aka "World"). */
 var World = {
 
@@ -36,7 +25,7 @@ var World = {
     currentMarker: null,
 
     locationUpdateCounter: 0,
-    updatePlacemarkDistancesEveryXLocationUpdates: 10,
+    updatePlacemarkDistancesEveryXLocationUpdates: 3,
 
     /* Called to inject new POI data. */
     loadPoisFromJsonData: function loadPoisFromJsonDataFn(poiData) {
@@ -67,24 +56,22 @@ var World = {
         for (var currentPlaceNr = 0; currentPlaceNr < poiData.length; currentPlaceNr++) {
             var singlePoi = {
                 "id": poiData[currentPlaceNr].id,
-                "latitude": parseFloat(poiData[currentPlaceNr].latitude),
-                "longitude": parseFloat(poiData[currentPlaceNr].longitude),
-                "altitude": parseFloat(poiData[currentPlaceNr].altitude),
-                "title": poiData[currentPlaceNr].name,
-                "description": poiData[currentPlaceNr].description
+                "latitude": parseFloat(poiData[currentPlaceNr].y_dnts),
+                "longitude": parseFloat(poiData[currentPlaceNr].x_cnts),
+                "altitude": parseFloat(AR.CONST.UNKNOWN_ALTITUDE),
+                "title": poiData[currentPlaceNr].upso_nm,
+                "description": poiData[currentPlaceNr].bizcnd_code_nm
             };
 
             World.markerList.push(new Marker(singlePoi));
+
         }
 
-        /* Updates distance information of all placemarks. */
         World.updateDistanceToUserValues();
 
         World.updateStatusMessage(currentPlaceNr + ' places loaded');
 
-        /* Set distance slider to 100%. */
-        $("#panel-distance-range").val(100);
-        $("#panel-distance-range").slider("refresh");
+        AR.context.scene.cullingDistance = 150;
     },
 
     /*
@@ -193,53 +180,6 @@ var World = {
         /* You may handle clicks on empty AR space too. */
     },
 
-    /* Returns distance in meters of placemark with maxdistance * 1.1. */
-    getMaxDistance: function getMaxDistanceFn() {
-
-        /* Sort places by distance so the first entry is the one with the maximum distance. */
-        World.markerList.sort(World.sortByDistanceSortingDescending);
-
-        /* Use distanceToUser to get max-distance. */
-        var maxDistanceMeters = World.markerList[0].distanceToUser;
-
-        /*
-            Return maximum distance times some factor >1.0 so ther is some room left and small movements of user
-            don't cause places far away to disappear.
-         */
-        return maxDistanceMeters * 1.1;
-    },
-
-    /* Updates values show in "range panel". */
-    updateRangeValues: function updateRangeValuesFn() {
-
-        /* Get current slider value (0..100);. */
-        var slider_value = $("#panel-distance-range").val();
-        /* Max range relative to the maximum distance of all visible places. */
-        var maxRangeMeters = Math.round(World.getMaxDistance() * (slider_value / 100));
-
-        /* Range in meters including metric m/km. */
-        var maxRangeValue = (maxRangeMeters > 999) ?
-            ((maxRangeMeters / 1000).toFixed(2) + " km") :
-            (Math.round(maxRangeMeters) + " m");
-
-        /* Number of places within max-range. */
-        var placesInRange = World.getNumberOfVisiblePlacesInRange(maxRangeMeters);
-
-        /* Update UI labels accordingly. */
-        $("#panel-distance-value").html(maxRangeValue);
-        $("#panel-distance-places").html((placesInRange != 1) ?
-            (placesInRange + " Places") : (placesInRange + " Place"));
-
-        World.updateStatusMessage((placesInRange != 1) ?
-            (placesInRange + " places loaded") : (placesInRange + " place loaded"));
-
-        /* Update culling distance, so only places within given range are rendered. */
-        AR.context.scene.cullingDistance = Math.max(maxRangeMeters, 1);
-
-        /* Update radar's maxDistance so radius of radar is updated too. */
-        PoiRadar.setMaxDistance(Math.max(maxRangeMeters, 1));
-    },
-
     /* Returns number of places with same or lower distance than given range. */
     getNumberOfVisiblePlacesInRange: function getNumberOfVisiblePlacesInRangeFn(maxRangeMeters) {
 
@@ -255,43 +195,6 @@ var World = {
 
         /* In case no placemark is out of range -> all are visible. */
         return World.markerList.length;
-    },
-
-    handlePanelMovements: function handlePanelMovementsFn() {
-
-        $("#panel-distance").on("panelclose", function(event, ui) {
-            $("#radarContainer").addClass("radarContainer_left");
-            $("#radarContainer").removeClass("radarContainer_right");
-            PoiRadar.updatePosition();
-        });
-
-        $("#panel-distance").on("panelopen", function(event, ui) {
-            $("#radarContainer").removeClass("radarContainer_left");
-            $("#radarContainer").addClass("radarContainer_right");
-            PoiRadar.updatePosition();
-        });
-    },
-
-    /* Display range slider. */
-    showRange: function showRangeFn() {
-        if (World.markerList.length > 0) {
-
-            /* Update labels on every range movement. */
-            $('#panel-distance-range').change(function() {
-                World.updateRangeValues();
-            });
-
-            World.updateRangeValues();
-            World.handlePanelMovements();
-
-            /* Open panel. */
-            $("#panel-distance").trigger("updatelayout");
-            $("#panel-distance").panel("open", 1234);
-        } else {
-
-            /* No places are visible, because the are not loaded yet. */
-            World.updateStatusMessage('No places available yet', true);
-        }
     },
 
     /*
@@ -321,9 +224,7 @@ var World = {
         World.updateStatusMessage('Requesting places from web-service');
 
         /* Server-url to JSON content provider. */
-        var serverUrl = ServerInformation.POIDATA_SERVER + "?" + ServerInformation.POIDATA_SERVER_ARG_LAT + "=" +
-            lat + "&" + ServerInformation.POIDATA_SERVER_ARG_LON + "=" +
-            lon + "&" + ServerInformation.POIDATA_SERVER_ARG_NR_POIS + "=20";
+        var serverUrl = "https://graduar.s3.ap-northeast-2.amazonaws.com/testdata.json";
 
         var jqxhr = $.getJSON(serverUrl, function(data) {
                 World.loadPoisFromJsonData(data);
