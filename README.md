@@ -15,5 +15,3 @@
   
 - 환경설정
   환경설정 탭에서 사용자가 원하는 언어를 선택할수있다. 현재는 한국어, 영어, 중국어, 일본어, 베트남어, 스페인어를 지원중이다.
-
-<iframe width="640" height="360" src="https://graduar.s3.ap-northeast-2.amazonaws.com/O.N.E.+%EC%9E%91%ED%92%88+%EC%84%A4%EB%AA%85+%EC%98%81%EC%83%81.mp4" frameborder="0" gesture="media" allowfullscreen=""></iframe>
