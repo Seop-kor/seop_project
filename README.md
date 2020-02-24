@@ -15,3 +15,7 @@
   
 - 환경설정
   환경설정 탭에서 사용자가 원하는 언어를 선택할수있다. 현재는 한국어, 영어, 중국어, 일본어, 베트남어, 스페인어를 지원중이다.
+
+소개영상
+
+[![Video Label](http://img.youtube.com/vi/Jbdn-3M3818/0.jpg)](https://youtu.be/Jbdn-3M3818)
